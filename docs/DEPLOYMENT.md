@@ -2,7 +2,7 @@
 
 The reference deployment targets OpenAI Sites with a D1 binding through the bundled vinext build. A fork must create its own private Sites project and database. The repository intentionally contains only `.openai/hosting.example.json`; never reuse the maintainer's `project_id`.
 
-## Before an agent changes anything
+## Before deploying
 
 Answer these first:
 
@@ -12,7 +12,7 @@ Answer these first:
 - How will the D1 database be backed up, restored, exported, and deleted?
 - Is Apple Health actually needed?
 
-The agent should create a new Sites project, copy the logical D1 binding name `DB`, and then persist that new project ID in a local `.openai/hosting.json`. Runtime values belong in Sites, not that file.
+Create a new Sites project, copy the logical D1 binding name `DB`, and then save that new project ID in a local `.openai/hosting.json`. Runtime values belong in Sites, not that file.
 
 ## Runtime configuration
 
@@ -78,7 +78,7 @@ Then verify:
 - A package-label zero remains zero; a missing field is labelled as an estimate or missing.
 - No environment file, token, database, photo, Shortcut, private URL, or personal target is tracked.
 
-Sites publishing, Git pushes, and migrations change external state. The agent must show the validated result and ask before each publish or push. Prefer a private deployment. Do not connect a public demo to a personal database.
+Sites publishing, Git pushes, and migrations change external state. Review the validated result before each publish or push. Prefer a private deployment. Do not connect a public demo to a personal database.
 
 ## Apple Health
 

@@ -19,6 +19,8 @@ Photos are sent to the vision provider configured by the deployer but are not st
 Requires Node.js 22.13 or later.
 
 ```bash
+git clone https://github.com/zhangboy03/tarelog.git
+cd tarelog
 npm install
 cp .dev.vars.example .dev.vars
 npm run dev
@@ -35,10 +37,6 @@ Nothing in a fresh checkout contains the maintainer's targets or frequent foods.
 - `QUICK_LOG_ITEMS_JSON` — optional array of your own confirmed frequent foods
 
 Do not copy another person's targets. Decide them for your own needs, and use professional help when health conditions make nutrition decisions high stakes.
-
-You can give an agent this prompt:
-
-> Read `AGENTS.md`, `README.md`, `docs/PRIVACY.md`, and `docs/DEPLOYMENT.md`. Ask me only for choices that change my data, provider, targets, or hosting. Create a new private Sites project for my account; do not reuse the maintainer's project ID. Keep secrets out of Git. Run tests, build, and lint before asking permission to publish.
 
 Tarelog has no analytics or advertising trackers by default. The journal and every data route require the deployment's access token.
 

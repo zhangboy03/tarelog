@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const githubUrl = "https://github.com/zhangboy03/tarelog";
 
 export default function Home() {
-  return <main className="minimal-site">
+  return <main className="minimal-site" lang="en">
     <header className="minimal-nav">
       <Link className="minimal-brand" href="/">Tarelog</Link>
       <nav aria-label="Project navigation">

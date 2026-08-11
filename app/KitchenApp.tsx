@@ -488,11 +488,11 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
   }
 
   return <section className="admin-panel analyzer-panel">
-    <div className="panel-intro"><p className="eyebrow">记录食物</p><h2>照片识别</h2><p>照片会发送给部署者配置的识别服务，但不会存进 Tarelog；确认后才保存识别结果和饮食记录。</p></div>
+    <div className="panel-intro"><p className="eyebrow">记录食物</p><h2>照片识别</h2><p>照片仅用于识别，不会存进 Tarelog。</p></div>
     <div className="photo-workbench">
       <div className={`photo-drop ${preview ? "has-photo" : ""}`} onClick={() => input.current?.click()} role="button" tabIndex={0} aria-label="添加食物照片" onKeyDown={(event) => event.key === "Enter" && input.current?.click()}>
         <input ref={input} type="file" accept="image/*" onChange={(event) => { void choose(event.target.files?.[0]); event.currentTarget.value = ""; }} hidden />
-        {preview ? <Image src={preview} alt="待识别的食材或食品包装" fill sizes="(max-width: 900px) 100vw, 55vw" unoptimized /> : <><span className="camera-icon">◎</span><strong>食材、秤面或营养标签</strong><p>轻点添加 · 不超过 8MB</p></>}
+        {preview ? <Image src={preview} alt="待识别的食材或食品包装" fill sizes="(max-width: 900px) 100vw, 55vw" unoptimized /> : <><span className="camera-icon">◎</span><strong>添加食物照片</strong><p>相机或图库 · 8MB 以内</p></>}
         <div className="corner one" /><div className="corner two" /><div className="corner three" /><div className="corner four" />
       </div>
       {file && <button type="button" className="primary photo-action" onClick={analyze} disabled={busy} aria-busy={activity === "analyze"}>{activity === "analyze" ? "正在识别并匹配营养…" : "识别这张照片"}</button>}
@@ -505,12 +505,12 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
       {quickMessage && <p className="quick-log-message" role="status">{quickMessage}</p>}
     </section>}
     <form className="manual-entry" onSubmit={analyzeManual}>
-      <div><span>文字补记</span><h3>一句话记下刚才吃的</h3><p>食物名称加重量或热量即可，支持“鸡腿肉 300 多卡”“午餐米饭 250 克”。</p></div>
+      <div><span>文字补记</span><h3>一句话记下刚才吃的</h3><p>写下食物和大概重量或热量。</p></div>
       <label><span>你记得什么就写什么</span><textarea rows={3} value={manualText} onChange={(event) => setManualText(event.target.value)} placeholder="例如：鸡腿肉 300 多卡" maxLength={160} /></label>
       <button className="primary" disabled={busy} aria-busy={activity === "manual"}>{activity === "manual" ? "正在匹配并计算…" : "自动估算，进入确认"}</button>
     </form>
     {!isPhotoResult && renderAnalysisResult()}
-    {(data.analyses || []).length > 0 && <div className="recent-list"><h3>全部识别与补记记录</h3><p>不再截断；每一条都能查看、重新匹配或手工修正。</p>{(data.analyses || []).map((item) => <div key={item.id}><span>{item.ingredientName}{!item.nutritionMatched && <i>待补营养</i>}</span><b>{item.grams}{item.unit === "ml" ? "ml" : "g"}</b><small>{Math.round(item.calories)} kcal</small><button className="secondary" onClick={() => editSaved(item)}>查看并修正</button></div>)}</div>}
+    {(data.analyses || []).length > 0 && <div className="recent-list"><h3>识别与补记记录</h3>{(data.analyses || []).map((item) => <div key={item.id}><span>{item.ingredientName}{!item.nutritionMatched && <i>待补营养</i>}</span><b>{item.grams}{item.unit === "ml" ? "ml" : "g"}</b><small>{Math.round(item.calories)} kcal</small><button className="secondary" onClick={() => editSaved(item)}>查看并修正</button></div>)}</div>}
   </section>;
 }
 

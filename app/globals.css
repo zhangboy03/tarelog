@@ -284,8 +284,8 @@ button.oss-button { width: 100%; }
   white-space: nowrap;
 }
 
-.login-page { min-height: 100dvh; display: grid; place-items: center; padding: 30px; color: #14251e; background: #e8eeea; }
-.login-card { width: min(460px, 100%); padding: 42px; background: #fcfdfb; border: 1px solid #cbd4d0; border-radius: 24px; box-shadow: 0 30px 80px rgba(20,37,30,.15); }
+.login-page { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: 30px; color: #14251e; background: #e8eeea; }
+.login-card { width: 100%; max-width: 460px; padding: 42px; background: #fcfdfb; border: 1px solid #cbd4d0; border-radius: 24px; box-shadow: 0 30px 80px rgba(20,37,30,.15); }
 .login-card .oss-brand { margin-bottom: 46px; }
 .login-kicker { margin: 0 0 12px; color: #287357; font: 700 .6rem var(--mono); letter-spacing: .1em; }
 .login-card h1 { margin: 0; font: 720 2.7rem/.98 "Avenir Next", sans-serif; letter-spacing: -.055em; }

@@ -68,7 +68,7 @@ test("contains configurable personal nutrition surfaces without partner ordering
   assert.match(client, /MacroRing/);
   assert.match(client, /与自定义目标的差距/);
   assert.match(client, /不判断营养是否充足/);
-  for (const dailyFeature of ["今天都吃了什么", "今日总账", "全天明细", "全部识别与补记记录", "不再截断"]) assert.match(client, new RegExp(dailyFeature));
+  for (const dailyFeature of ["今天都吃了什么", "今日总账", "全天明细", "识别与补记记录"]) assert.match(client, new RegExp(dailyFeature));
   for (const removedAdvice of ["训练日怎么吃", "两周后怎么调整"]) assert.doesNotMatch(client, new RegExp(removedAdvice));
   assert.doesNotMatch(client, /\.slice\(0, 5\)/);
   assert.doesNotMatch(kitchenApi, /analyses\.createdAt\)\)\.limit\(12\)/);
@@ -81,8 +81,8 @@ test("contains configurable personal nutrition surfaces without partner ordering
   for (const range of ["7 天", "30 天", "90 天", "全部"]) assert.match(client, new RegExp(range));
   for (const trendFeature of ["热量与目标", "目标附近", "宏量营养", "每日汇总", "空白日期代表没有记录"]) assert.match(client, new RegExp(trendFeature));
   assert.match(client, /recordedDays\.length \|\| 1/);
-  for (const packagingFeature of ["照片识别", "食材、秤面或营养标签", "包装标签换算", "实际吃掉"]) assert.match(client, new RegExp(packagingFeature));
-  for (const photoSource of ["照片识别", "照片会发送给部署者配置的识别服务", "轻点添加"]) assert.match(client, new RegExp(photoSource));
+  for (const packagingFeature of ["照片识别", "添加食物照片", "包装标签换算", "实际吃掉"]) assert.match(client, new RegExp(packagingFeature));
+  for (const photoSource of ["照片识别", "照片仅用于识别", "相机或图库"]) assert.match(client, new RegExp(photoSource));
   assert.match(client, /ref=\{input\} type="file" accept="image\/\*" onChange=/);
   assert.equal(client.match(/type="file"/g)?.length, 1);
   assert.doesNotMatch(client, /capture="environment"|cameraInput|libraryInput|photo-source-actions/);
@@ -135,7 +135,7 @@ test("contains configurable personal nutrition surfaces without partner ordering
   assert.match(nutritionApi, /resolveNutrition/);
   assert.match(profile, /resolveTargetMacros/);
   assert.match(profile, /return kcal && protein && carbs && fat/);
-  assert.match(layout, /lang="en"/);
+  assert.match(layout, /lang="zh-CN"/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   await assert.rejects(access(new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url)));
 });
