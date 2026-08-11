@@ -14,7 +14,7 @@ For an ingredient photo, the model copies the visible name and scale reading; Ta
 
 Photos are sent to the vision provider configured by the deployer but are not stored by Tarelog. Recognition results and meals are written to D1 only after confirmation. Every saved value remains editable and keeps its source label.
 
-## Run locally
+## Run Tarelog
 
 Requires Node.js 22.13 or later.
 
