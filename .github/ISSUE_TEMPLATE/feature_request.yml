@@ -1,0 +1,29 @@
+name: Feature request
+description: Propose a focused improvement to the food-recording loop.
+title: "[Idea]: "
+labels: [enhancement, triage]
+body:
+  - type: textarea
+    attributes:
+      label: Problem
+      description: What becomes difficult or unreliable today?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed change
+      description: Describe the smallest useful behavior, not a broad solution suite.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Verification
+      description: How would we know the change improved accuracy, privacy, or usability?
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Project boundaries
+      options:
+        - label: This proposal preserves human confirmation before records enter the ledger.
+        - label: This proposal does not require publishing personal food data.

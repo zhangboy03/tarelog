@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "swift-shortcuts",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/a2/swift-shortcuts.git",
+      "state" : {
+        "revision" : "8787a7faf2c1ee3e7da0a3a2f1e47e58ec10f72f",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 2
+}

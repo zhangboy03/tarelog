@@ -1,0 +1,12 @@
+APP_ACCESS_TOKEN=replace-with-at-least-24-random-characters
+HEALTH_SYNC_TOKEN=replace-with-a-different-random-token
+AI_API_KEY=
+AI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+AI_MODEL=qwen3.7-plus
+USDA_API_KEY=DEMO_KEY
+APP_TIME_ZONE=UTC
+TARGET_KCAL=
+TARGET_PROTEIN=
+TARGET_CARBS=
+TARGET_FAT=
+QUICK_LOG_ITEMS_JSON=[]
