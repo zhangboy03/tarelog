@@ -12,7 +12,7 @@ photo or note → check the name, amount, and source → confirm → save the me
 
 For an ingredient photo, the model copies the visible name and scale reading; Tarelog then tries a sourced local entry or a structured USDA FoodData Central Foundation/SR Legacy match. For a package photo, it uses the visible nutrition label first and clearly marks any missing fields filled from a generic food reference. It does not identify a branded product in USDA.
 
-Photos are sent to the vision provider configured by the deployer but are not stored by Tarelog. Recognition results and meals are written to D1 only after confirmation. Every saved value remains editable and keeps its source label.
+Photos are sent to the vision provider configured by the deployer but are not stored by Tarelog. Recognition results and meals are written to D1 only after confirmation. Confirmed recognition records retain their source label; recognition records and daily meal rows remain editable.
 
 ## Run Tarelog
 

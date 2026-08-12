@@ -114,6 +114,10 @@ function round(n: number) {
   return Math.round(n * 10) / 10;
 }
 
+export function observedLabelNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
 function scaledNutrition(ingredientName: string, grams: number, value: NutritionReference): NutritionMatch {
   const factor = grams / 100;
   return {
@@ -261,7 +265,10 @@ export async function resolveNutrition(options: { name: string; genericName?: st
   const genericName = String(options.genericName || normalized?.generic_name_zh || "").trim();
   if (genericName) {
     const catalogMatch = resolveCatalogNutrition(genericName, options.grams);
-    if (catalogMatch) catalogFallback = { ...catalogMatch, ingredientName: options.name };
+    if (catalogMatch) {
+      catalogFallback = { ...catalogMatch, ingredientName: options.name };
+      if (catalogMatch.matched) return catalogFallback;
+    }
   }
 
   const englishName = String(options.englishName || normalized?.search_name_en || "").trim();

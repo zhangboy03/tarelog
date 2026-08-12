@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { requireAppAccess } from "@/lib/access";
 import { chatCompletionsEndpoint } from "@/lib/ai-endpoint";
-import { resolveNutrition } from "@/lib/nutrition";
+import { observedLabelNumber, resolveNutrition } from "@/lib/nutrition";
 import { nutritionCache } from "@/lib/nutrition-cache";
 
 type RuntimeEnv = {
@@ -50,7 +50,7 @@ function resolvePackageNutrition(reading: VisionReading) {
   const amount = Number(reading.amount || 0);
   const basis = Number(reading.label_basis_amount || 0);
   if (!Number.isFinite(amount) || !Number.isFinite(basis) || amount <= 0 || basis <= 0) return null;
-  const labelNumber = (value: number | null | undefined) => value === null || value === undefined || !Number.isFinite(Number(value)) ? null : Math.max(0, Number(value));
+  const labelNumber = observedLabelNumber;
   const energyKj = labelNumber(reading.label_energy_kj);
   const directEnergyKcal = labelNumber(reading.label_energy_kcal);
   const energyKcal = directEnergyKcal ?? (energyKj === null ? 0 : energyKj / 4.184);

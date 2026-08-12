@@ -39,7 +39,7 @@ Apple Health uses a separate header token because the iPhone Shortcut is not a b
 
 - Browser input and model output are untrusted and validated in route handlers.
 - The access cookie proves knowledge of one deployment token; it does not identify a person.
-- A package label is an observation. A generic-food database value is an estimate. Stored source metadata keeps the distinction.
+- A package label is an observation. A generic-food database value is an estimate. Confirmed analysis metadata keeps the distinction; the current meal ledger does not store a separate source field.
 - Missing label nutrients are represented separately from a real zero before any generic reference is considered.
 - Cloudflare, the chosen model provider, and USDA are external services selected or accepted by the deployer.
 

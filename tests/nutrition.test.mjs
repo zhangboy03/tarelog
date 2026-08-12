@@ -1,6 +1,63 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolveCatalogNutrition, resolveNutrition, resolveUsdaNutrition } from "../lib/nutrition.ts";
+import { observedLabelNumber, resolveCatalogNutrition, resolveNutrition, resolveUsdaNutrition } from "../lib/nutrition.ts";
+
+test("keeps real label zero but rejects invalid values as unobserved", () => {
+  assert.equal(observedLabelNumber(0), 0);
+  assert.equal(observedLabelNumber(12.5), 12.5);
+  assert.equal(observedLabelNumber(-0.1), null);
+  assert.equal(observedLabelNumber("0"), null);
+  assert.equal(observedLabelNumber(Number.POSITIVE_INFINITY), null);
+  assert.equal(observedLabelNumber(null), null);
+});
+
+test("uses a sourced local canonical food immediately after name normalization", async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  let cacheReads = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    return Response.json({ choices: [{ message: { content: JSON.stringify({ generic_name_zh: "山药", search_name_en: "Chinese yam, raw" }) } }] });
+  };
+  try {
+    const result = await resolveNutrition({
+      name: "河北脆山药新品种",
+      grams: 100,
+      apiKey: "test",
+      baseUrl: "https://example.invalid",
+      model: "test",
+      cache: {
+        async get() {
+          cacheReads += 1;
+          return {
+            ingredientName: "河北脆山药新品种",
+            calories: 999,
+            protein: 0,
+            carbs: 0,
+            fat: 0,
+            fiber: 0,
+            sugar: 0,
+            saturatedFat: 0,
+            sodium: 0,
+            caffeine: 0,
+            matched: true,
+            nutritionSource: "USDA FoodData Central · competing cache fixture",
+            nutritionSourceUrl: "https://fdc.nal.usda.gov/",
+          };
+        },
+        async set() {
+          assert.fail("a sourced local canonical food must not be overwritten");
+        },
+      },
+    });
+    assert.equal(fetchCalls, 1);
+    assert.equal(cacheReads, 0);
+    assert.equal(result.calories, 58.1);
+    assert.equal(result.nutritionSource, "中国食物成分表 · 山药（鲜，每100克可食部）");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 
 test("normalizes a named Chinese yam variety to stable local nutrition", () => {
   const result = resolveCatalogNutrition("小白嘴山药", 440);

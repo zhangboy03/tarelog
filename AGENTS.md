@@ -73,7 +73,8 @@ Reuse the reference implementation where it fits. Replace its infrastructure, pr
 - `app/journal/` and `app/KitchenApp.tsx`: private journal interface
 - `app/api/`: access, capture, nutrition, journal, and health-sync routes
 - `lib/access.ts`: journal access boundary
-- `lib/nutrition-cache.ts`: canonical local foods and fallback behavior
+- `lib/nutrition.ts`: canonical local foods and fallback order
+- `lib/nutrition-cache.ts`: persistent structured USDA cache
 - `db/` and `drizzle/`: data model and migrations
 - `docs/PRIVACY.md`: current data flow and known lifecycle limits
 - `docs/ARCHITECTURE.md`: reference trust boundaries
