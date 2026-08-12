@@ -14,7 +14,9 @@ type HealthSyncEnv = {
 const runtime = env as unknown as HealthSyncEnv;
 
 function runtimeToken() {
-  return runtime.HEALTH_SYNC_TOKEN || process.env.HEALTH_SYNC_TOKEN || "";
+  const token = runtime.HEALTH_SYNC_TOKEN || process.env.HEALTH_SYNC_TOKEN || "";
+  if (token.length < 24 || token.startsWith("replace-with-")) return "";
+  return token;
 }
 
 function runtimeTimeZone() {

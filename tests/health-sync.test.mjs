@@ -11,6 +11,7 @@ test("keeps Apple Health synchronization private, incremental, and acknowledged 
   ]);
 
   assert.match(route, /HEALTH_SYNC_TOKEN/);
+  assert.match(route, /token\.length < 24 \|\| token\.startsWith\("replace-with-"\)/);
   assert.match(route, /x-health-sync-token/);
   assert.doesNotMatch(route, /searchParams\.get\("token"\)/);
   assert.match(route, /pendingHealthNutrients/);
