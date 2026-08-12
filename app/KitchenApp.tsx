@@ -64,6 +64,7 @@ type QuickLogItem = {
   calories: number; protein: number; carbs: number; fat: number; fiber: number;
   sugar: number; saturatedFat: number; sodium: number; caffeine: number;
 };
+type QueuedPhoto = { file: File; preview: string };
 type Bootstrap = {
   timeZone: string;
   targetMacros: { kcal: number; protein: number; carbs: number; fat: number } | null;
@@ -347,16 +348,20 @@ function LongTermTrends({ data }: { data: Bootstrap }) {
 function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void }) {
   const input = useRef<HTMLInputElement>(null);
   const result = useRef<HTMLDivElement>(null);
-  const [preview, setPreview] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [photoQueue, setPhotoQueue] = useState<QueuedPhoto[]>([]);
+  const [photoBatchTotal, setPhotoBatchTotal] = useState(0);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [manualText, setManualText] = useState("");
   const [editingSaved, setEditingSaved] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [activity, setActivity] = useState<"manual" | "analyze" | "match" | "save" | "">("");
+  const [activity, setActivity] = useState<"prepare" | "manual" | "analyze" | "match" | "save" | "">("");
   const [message, setMessage] = useState("");
   const [quickMessage, setQuickMessage] = useState("");
   const [savingItem, setSavingItem] = useState("");
+  const currentPhoto = photoQueue[0];
+  const file = currentPhoto?.file || null;
+  const preview = currentPhoto?.preview || "";
+  const photoPosition = file ? photoBatchTotal - photoQueue.length + 1 : 0;
 
   async function logQuickItem(item: QuickLogItem) {
     setSavingItem(item.id); setQuickMessage("");
@@ -382,25 +387,42 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", .78));
     return blob ? new File([blob], "food-photo.jpg", { type: "image/jpeg" }) : selected;
   }
-  async function choose(selected?: File) {
-    if (!selected) return;
-    setMessage("正在整理照片…");
-    try {
-      const ready = await compressPhoto(selected);
-      setFile(ready); setPreview(URL.createObjectURL(ready)); setAnalysis(null); setEditingSaved(false); setMessage("");
-    } catch {
-      setFile(selected); setPreview(URL.createObjectURL(selected)); setAnalysis(null); setEditingSaved(false); setMessage("照片已保留原图；如上传失败，请在相机里调低清晰度重拍。");
-    }
+  async function choose(selected: File[]) {
+    const images = selected.filter((item) => item.type.startsWith("image/"));
+    if (!images.length) return setMessage("请选择食物或包装照片。");
+    setBusy(true); setActivity("prepare"); setMessage(`正在整理 ${images.length} 张照片…`);
+    clearPhotoQueue(); setAnalysis(null); setEditingSaved(false);
+    const prepared = await Promise.all(images.map(async (item) => {
+      try { return await compressPhoto(item); } catch { return item; }
+    }));
+    const ready = prepared.map((item) => ({ file: item, preview: URL.createObjectURL(item) }));
+    setPhotoQueue(ready); setPhotoBatchTotal(ready.length); setBusy(false); setActivity("");
+    await analyzePhoto(ready[0].file, ready.length > 1 ? `已选择 ${ready.length} 张照片，正在识别第 1 张…` : "");
   }
-  async function analyze() {
-    if (!file) return;
-    setBusy(true); setActivity("analyze"); setMessage("");
-    const body = new FormData(); body.append("image", file);
+  async function analyzePhoto(selected = file, progressMessage = "") {
+    if (!selected) return;
+    setBusy(true); setActivity("analyze"); setMessage(progressMessage);
+    const body = new FormData(); body.append("image", selected);
     const response = await fetch("/api/analyze", { method: "POST", body });
     const result = await response.json() as { analysis?: Analysis; error?: string };
     setBusy(false); setActivity("");
     if (!response.ok || !result.analysis) return setMessage(result.error || "识别失败，请重拍。");
-    setAnalysis(result.analysis); setEditingSaved(false);
+    setAnalysis(result.analysis); setEditingSaved(false); setMessage("");
+  }
+  function clearPhotoQueue() {
+    photoQueue.forEach((item) => URL.revokeObjectURL(item.preview));
+    setPhotoQueue([]); setPhotoBatchTotal(0);
+  }
+  function advancePhoto(doneMessage: string) {
+    if (currentPhoto) URL.revokeObjectURL(currentPhoto.preview);
+    const remaining = photoQueue.slice(1);
+    setAnalysis(null); setEditingSaved(false); setPhotoQueue(remaining);
+    if (!remaining.length) {
+      setPhotoBatchTotal(0); setMessage(`${doneMessage} 本组照片已处理完。`);
+      return;
+    }
+    const nextPosition = photoBatchTotal - remaining.length + 1;
+    window.setTimeout(() => void analyzePhoto(remaining[0].file, `${doneMessage} 正在识别第 ${nextPosition} / ${photoBatchTotal} 张…`), 0);
   }
   async function analyzeManual(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -414,7 +436,7 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
     const payload = await response.json() as { analysis?: Analysis; error?: string };
     setBusy(false); setActivity("");
     if (!response.ok || !payload.analysis) return setMessage(payload.error || "这句话还没算明白，请换一种写法。");
-    setAnalysis(payload.analysis); setEditingSaved(false); setFile(null); setPreview("");
+    clearPhotoQueue(); setAnalysis(payload.analysis); setEditingSaved(false);
     window.setTimeout(() => result.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
   function updateGrams(next: number) {
@@ -447,12 +469,14 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
     setMessage("已按当前食材和重量匹配权威营养数据。");
   }
   function editSaved(item: Analysis) {
+    clearPhotoQueue();
     setAnalysis({ ...item, detectedName: item.detectedName || item.ingredientName });
-    setEditingSaved(true); setFile(null); setPreview(""); setMessage("");
+    setEditingSaved(true); setMessage("");
     window.setTimeout(() => result.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
   async function confirm(log = false) {
     if (!analysis) return;
+    const confirmingPhoto = isPhotoResult && Boolean(currentPhoto);
     setBusy(true); setActivity("save"); setMessage("");
     const saveResponse = await fetch("/api/kitchen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "saveAnalysis", ...analysis }) });
     const saved = await saveResponse.json() as { error?: string };
@@ -461,12 +485,15 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
       const logResponse = await fetch("/api/kitchen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logMeal", mealType: analysis.mealType || "加餐", ...analysis }) });
       if (!logResponse.ok) { setBusy(false); setActivity(""); return setMessage("修正已保存，但没有记入今天，请再点一次。"); }
     }
-    setBusy(false); setActivity(""); setEditingSaved(false); setAnalysis(null); setFile(null); setPreview(""); setManualText("");
-    setMessage(log ? "已确认并记入今天。" : "这次修正已经保存。"); onRefresh();
+    setBusy(false); setActivity(""); setEditingSaved(false); setManualText("");
+    if (confirmingPhoto) advancePhoto("这张已确认并记入今天。");
+    else { setAnalysis(null); clearPhotoQueue(); setMessage(log ? "已确认并记入今天。" : "这次修正已经保存。"); }
+    onRefresh();
   }
 
   function dismissAnalysis() {
-    setAnalysis(null); setEditingSaved(false); setFile(null); setPreview(""); setMessage("已关闭，照片、识别结果和饮食记录都没有保存。");
+    if (isPhotoResult && currentPhoto) return advancePhoto("这张已跳过，没有保存。");
+    setAnalysis(null); setEditingSaved(false); clearPhotoQueue(); setMessage("已关闭，照片、识别结果和饮食记录都没有保存。");
   }
 
   const nutritionReady = Boolean(analysis?.nutritionMatched);
@@ -488,14 +515,15 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
   }
 
   return <section className="admin-panel analyzer-panel">
-    <div className="panel-intro"><p className="eyebrow">记录食物</p><h2>照片识别</h2><p>照片仅用于识别，不会存进 Tarelog。</p></div>
+    <div className="panel-intro"><p className="eyebrow">记录食物</p><h2>照片识别</h2><p>一次可选多张。照片仅用于识别，不会存进 Tarelog。</p></div>
     <div className="photo-workbench">
-      <div className={`photo-drop ${preview ? "has-photo" : ""}`} onClick={() => input.current?.click()} role="button" tabIndex={0} aria-label="添加食物照片" onKeyDown={(event) => event.key === "Enter" && input.current?.click()}>
-        <input ref={input} type="file" accept="image/*" onChange={(event) => { void choose(event.target.files?.[0]); event.currentTarget.value = ""; }} hidden />
-        {preview ? <Image src={preview} alt="待识别的食材或食品包装" fill sizes="(max-width: 900px) 100vw, 55vw" unoptimized /> : <><span className="camera-icon">◎</span><strong>添加食物照片</strong><p>相机或图库 · 8MB 以内</p></>}
+      <div className={`photo-drop ${preview ? "has-photo" : ""}`} onClick={() => !busy && input.current?.click()} role="button" tabIndex={0} aria-label="添加食物照片，可一次选择多张" aria-disabled={busy} onKeyDown={(event) => event.key === "Enter" && !busy && input.current?.click()}>
+        <input ref={input} type="file" accept="image/*" multiple disabled={busy} onChange={(event) => { const selected = Array.from(event.currentTarget.files || []); event.currentTarget.value = ""; void choose(selected); }} hidden />
+        {preview ? <Image src={preview} alt={`第 ${photoPosition} 张待识别的食材或食品包装`} fill sizes="(max-width: 900px) 100vw, 55vw" unoptimized /> : <><span className="camera-icon">◎</span><strong>添加食物照片</strong><p>相机或图库 · 可一次多选 · 每张 8MB 以内</p></>}
         <div className="corner one" /><div className="corner two" /><div className="corner three" /><div className="corner four" />
       </div>
-      {file && <button type="button" className="primary photo-action" onClick={analyze} disabled={busy} aria-busy={activity === "analyze"}>{activity === "analyze" ? "正在识别并匹配营养…" : "识别这张照片"}</button>}
+      {file && photoBatchTotal > 1 && <div className="photo-queue-status" aria-live="polite"><strong>第 {photoPosition} / {photoBatchTotal} 张</strong><span>{analysis ? "等待你确认" : activity === "analyze" ? "正在识别并匹配营养" : `后面还有 ${photoQueue.length - 1} 张`}</span></div>}
+      {file && <button type="button" className="primary photo-action" onClick={() => void analyzePhoto()} disabled={busy} aria-busy={activity === "analyze"}>{activity === "analyze" ? "正在识别并匹配营养…" : analysis ? "重新识别当前照片" : "识别当前照片"}</button>}
     </div>
     {isPhotoResult && renderAnalysisResult()}
     {message && <div className="toast-note" role="status">{message}</div>}

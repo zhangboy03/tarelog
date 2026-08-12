@@ -85,7 +85,14 @@ test("contains configurable personal nutrition surfaces without partner ordering
   assert.match(client, /recordedDays\.length \|\| 1/);
   for (const packagingFeature of ["照片识别", "添加食物照片", "包装标签换算", "实际吃掉"]) assert.match(client, new RegExp(packagingFeature));
   for (const photoSource of ["照片识别", "照片仅用于识别", "相机或图库"]) assert.match(client, new RegExp(photoSource));
-  assert.match(client, /ref=\{input\} type="file" accept="image\/\*" onChange=/);
+  for (const queueFeature of ["一次可选多张", "等待你确认", "本组照片已处理完"]) assert.match(client, new RegExp(queueFeature));
+  assert.match(client, /const \[photoQueue, setPhotoQueue\] = useState/);
+  assert.match(client, /Array\.from\(event\.currentTarget\.files \|\| \[\]\)/);
+  assert.match(client, /await analyzePhoto\(ready\[0\]\.file/);
+  assert.match(client, /void analyzePhoto\(remaining\[0\]\.file/);
+  assert.match(client, /if \(confirmingPhoto\) advancePhoto/);
+  assert.match(client, /if \(isPhotoResult && currentPhoto\) return advancePhoto/);
+  assert.match(client, /ref=\{input\} type="file" accept="image\/\*" multiple/);
   assert.equal(client.match(/type="file"/g)?.length, 1);
   assert.doesNotMatch(client, /capture="environment"|cameraInput|libraryInput|photo-source-actions/);
   for (const removedPhotoGuide of ["拍对的三个关键", "食材：食物和秤面一起入镜", "包装：拍正营养表"]) assert.doesNotMatch(client, new RegExp(removedPhotoGuide));

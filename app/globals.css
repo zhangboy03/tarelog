@@ -571,6 +571,8 @@ button.oss-button { width: 100%; }
 .corner.two { right: 20px; top: 20px; border-width: 2px 2px 0 0; border-radius: 0 8px 0 0; }
 .corner.three { left: 20px; bottom: 20px; border-width: 0 0 2px 2px; border-radius: 0 0 0 8px; }
 .corner.four { right: 20px; bottom: 20px; border-width: 0 2px 2px 0; border-radius: 0 0 8px; }
+.photo-queue-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; color: var(--accent-strong); background: var(--accent-soft); border-radius: 12px; font-size: .75rem; }
+.photo-queue-status span { color: var(--muted); }
 .photo-action { width: 100%; }
 .analysis-result { margin-top: 24px; padding: 30px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 20px; box-shadow: 0 18px 50px rgba(21, 35, 29, .08); scroll-margin-top: 24px; }
 .analysis-result.photo-result { margin-top: 12px; }
