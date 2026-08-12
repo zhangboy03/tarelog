@@ -3,11 +3,12 @@ import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("separates the public project page from the protected private journal", async () => {
-  const [page, journal, client, layout, accessLib, accessApi, agentGuide, llms] = await Promise.all([
+  const [page, journal, client, layout, login, accessLib, accessApi, agentGuide, llms] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/journal/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/KitchenApp.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/login/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/access.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/access/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../AGENTS.md", import.meta.url), "utf8"),
@@ -24,6 +25,8 @@ test("separates the public project page from the protected private journal", asy
   assert.match(journal, /<KitchenApp \/>/);
   assert.match(journal, /requestHasAccess/);
   assert.match(journal, /redirect\("\/login\?next=%2Fjournal"\)/);
+  assert.match(login, /!requested\.startsWith\("\/\/"\)/);
+  assert.match(login, /!requested\.includes\("\\\\"\)/);
   assert.match(layout, /Tarelog/);
   assert.match(client, /正在加载饮食记录/);
   assert.match(client, /response\.status === 401/);

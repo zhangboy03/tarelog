@@ -5,6 +5,6 @@ export const metadata: Metadata = { title: "Private journal access", robots: { i
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const requested = (await searchParams).next || "/journal";
-  const nextPath = requested.startsWith("/") && !requested.startsWith("//") ? requested : "/journal";
+  const nextPath = requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") ? requested : "/journal";
   return <main className="login-page" lang="en"><LoginForm nextPath={nextPath} /></main>;
 }
