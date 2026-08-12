@@ -30,6 +30,8 @@ test("separates the public project page from the protected private journal", asy
   assert.match(client, /window\.location\.assign\(`\/login\?next=/);
   assert.match(accessLib, /APP_ACCESS_TOKEN/);
   assert.match(accessLib, /HttpOnly; SameSite=Strict/);
+  assert.match(accessLib, /const accessCookieMaxAge = 60 \* 60 \* 24 \* 400/);
+  assert.match(accessLib, /Max-Age=\$\{accessCookieMaxAge\}/);
   assert.match(accessApi, /verifyAccessToken/);
   assert.match(accessApi, /Set-Cookie/);
   assert.match(agentGuide, /Start with the person/);

@@ -27,7 +27,7 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
     <Link className="oss-brand" href="/"><span>TL</span><strong>Tarelog</strong></Link>
     <p className="login-kicker">PRIVATE JOURNAL</p>
     <h1>Open your food record.</h1>
-    <p>Enter the access token configured by this deployment. A one-way-derived value is stored only in an HTTP-only session cookie.</p>
+    <p>Enter the access token configured by this deployment. This device will stay signed in with a one-way-derived, HTTP-only cookie.</p>
     <label><span>Access token</span><input type="password" autoComplete="current-password" minLength={24} value={token} onChange={(event) => setToken(event.target.value)} required autoFocus /></label>
     {message && <p className="login-error" role="alert">{message}</p>}
     <button className="oss-button solid" disabled={busy} aria-busy={busy}>{busy ? "Checking…" : "Open journal"}</button>

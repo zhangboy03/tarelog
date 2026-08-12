@@ -4,6 +4,7 @@ type AccessEnv = { APP_ACCESS_TOKEN?: string };
 
 const runtime = env as unknown as AccessEnv;
 export const accessCookieName = "tarelog_access";
+const accessCookieMaxAge = 60 * 60 * 24 * 400;
 
 function configuredToken() {
   const token = runtime.APP_ACCESS_TOKEN || process.env.APP_ACCESS_TOKEN || "";
@@ -65,7 +66,7 @@ export async function requireAppAccess(request: Request) {
 
 export async function sessionCookie(request: Request) {
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
-  return `${accessCookieName}=${await accessCookie()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000${secure}`;
+  return `${accessCookieName}=${await accessCookie()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${accessCookieMaxAge}${secure}`;
 }
 
 export function expiredSessionCookie(request: Request) {
