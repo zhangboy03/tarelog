@@ -16,6 +16,11 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 - Rejected unsafe post-login redirect targets that use network-path references or backslashes.
 - Kept local image optimization working when the production asset binding is unavailable.
+- Made meal creation retry-safe after ambiguous network failures and disabled caching for private journal reads.
+- Preserved real package-label zeroes while rejecting invalid negative observations.
+- Restored canonical local-food precedence after AI-assisted name normalization.
+- Rejected public placeholder values and short secrets as Apple Health sync tokens.
+- Made the test command work on the project's declared Node 22 runtime.
 
 ## [0.1.0] - 2026-08-11
 
