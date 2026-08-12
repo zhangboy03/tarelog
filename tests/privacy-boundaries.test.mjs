@@ -28,3 +28,17 @@ test("unconfirmed photo and manual readings are not persisted", async () => {
   assert.match(kitchenRoute, /action === "saveAnalysis"/);
   assert.match(kitchenRoute, /insert\(analyses\)/);
 });
+
+test("private journal reads are not cacheable and meal creation is retry-safe", async () => {
+  const [route, client] = await Promise.all([
+    readFile(new URL("../app/api/kitchen/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/KitchenApp.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(route, /Cache-Control": "private, no-store"/);
+  assert.match(route, /const id = String\(body\.id \|\| crypto\.randomUUID\(\)\)/);
+  assert.match(route, /db\.insert\(mealLogs\)[\s\S]*?\.onConflictDoNothing\(\)/);
+  assert.match(route, /Response\.json\(\{ ok: true, id \}/);
+  assert.match(client, /quickRequestIds/);
+  assert.match(client, /id: requestId/);
+  assert.match(client, /相同记录不会重复写入/);
+});

@@ -358,21 +358,30 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
   const [message, setMessage] = useState("");
   const [quickMessage, setQuickMessage] = useState("");
   const [savingItem, setSavingItem] = useState("");
+  const quickRequestIds = useRef(new Map<string, string>());
   const currentPhoto = photoQueue[0];
   const file = currentPhoto?.file || null;
   const preview = currentPhoto?.preview || "";
   const photoPosition = file ? photoBatchTotal - photoQueue.length + 1 : 0;
 
   async function logQuickItem(item: QuickLogItem) {
+    const requestId = quickRequestIds.current.get(item.id) || crypto.randomUUID();
+    quickRequestIds.current.set(item.id, requestId);
     setSavingItem(item.id); setQuickMessage("");
-    const response = await fetch("/api/kitchen", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "logMeal", mealType: item.mealType, ingredientName: item.name, grams: item.grams, calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat, fiber: item.fiber, sugar: item.sugar, saturatedFat: item.saturatedFat, sodium: item.sodium, caffeine: item.caffeine }),
-    });
-    setSavingItem("");
-    if (!response.ok) return setQuickMessage("这份记录没有记成功，请稍后再试。");
-    setQuickMessage(`${item.name}已经记入今天。`); onRefresh();
+    try {
+      const response = await fetch("/api/kitchen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logMeal", id: requestId, mealType: item.mealType, ingredientName: item.name, grams: item.grams, calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat, fiber: item.fiber, sugar: item.sugar, saturatedFat: item.saturatedFat, sodium: item.sodium, caffeine: item.caffeine }),
+      });
+      if (!response.ok) return setQuickMessage("这份记录没有记成功，请稍后再试。再次点同一项不会重复写入。");
+      quickRequestIds.current.delete(item.id);
+      setQuickMessage(`${item.name}已经记入今天。`); onRefresh();
+    } catch {
+      setQuickMessage("网络中断，无法确认是否已记入。请再点同一项；不会重复写入。");
+    } finally {
+      setSavingItem("");
+    }
   }
 
   async function compressPhoto(selected: File) {
@@ -478,17 +487,23 @@ function FoodEntry({ data, onRefresh }: { data: Bootstrap; onRefresh: () => void
     if (!analysis) return;
     const confirmingPhoto = isPhotoResult && Boolean(currentPhoto);
     setBusy(true); setActivity("save"); setMessage("");
-    const saveResponse = await fetch("/api/kitchen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "saveAnalysis", ...analysis }) });
-    const saved = await saveResponse.json() as { error?: string };
-    if (!saveResponse.ok) { setBusy(false); setActivity(""); return setMessage(saved.error || "修正没有保存成功，请再试一次。"); }
-    if (log) {
-      const logResponse = await fetch("/api/kitchen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logMeal", mealType: analysis.mealType || "加餐", ...analysis }) });
-      if (!logResponse.ok) { setBusy(false); setActivity(""); return setMessage("修正已保存，但没有记入今天，请再点一次。"); }
+    try {
+      const saveResponse = await fetch("/api/kitchen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "saveAnalysis", ...analysis }) });
+      const saved = await saveResponse.json() as { error?: string };
+      if (!saveResponse.ok) return setMessage(saved.error || "修正没有保存成功，请再试一次。");
+      if (log) {
+        const logResponse = await fetch("/api/kitchen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logMeal", mealType: analysis.mealType || "加餐", ...analysis }) });
+        if (!logResponse.ok) return setMessage("修正已保存，但没有记入今天，请再点一次。相同记录不会重复写入。");
+      }
+      setEditingSaved(false); setManualText("");
+      if (confirmingPhoto) advancePhoto("这张已确认并记入今天。");
+      else { setAnalysis(null); clearPhotoQueue(); setMessage(log ? "已确认并记入今天。" : "这次修正已经保存。"); }
+      onRefresh();
+    } catch {
+      setMessage(log ? "网络中断，无法确认是否已记入今天。请再点一次；相同记录不会重复写入。" : "网络中断，修正是否保存尚未确认。请再点一次。");
+    } finally {
+      setBusy(false); setActivity("");
     }
-    setBusy(false); setActivity(""); setEditingSaved(false); setManualText("");
-    if (confirmingPhoto) advancePhoto("这张已确认并记入今天。");
-    else { setAnalysis(null); clearPhotoQueue(); setMessage(log ? "已确认并记入今天。" : "这次修正已经保存。"); }
-    onRefresh();
   }
 
   function dismissAnalysis() {

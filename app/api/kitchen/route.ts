@@ -92,7 +92,7 @@ export async function GET(request: Request) {
   response.logs = logs;
   response.history = history.map((day) => ({ ...day, entries: Number(day.entries), calories: Number(day.calories), protein: Number(day.protein), carbs: Number(day.carbs), fat: Number(day.fat), fiber: Number(day.fiber), sugar: Number(day.sugar), saturatedFat: Number(day.saturatedFat), sodium: Number(day.sodium), caffeine: Number(day.caffeine) }));
 
-  return Response.json(response);
+  return Response.json(response, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function POST(request: Request) {
@@ -160,6 +160,10 @@ export async function POST(request: Request) {
   }
 
   if (action === "logMeal") {
+    const id = String(body.id || crypto.randomUUID());
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      return Response.json({ error: "饮食记录编号无效。" }, { status: 400 });
+    }
     const grams = Number(body.grams || 0);
     if (!Number.isFinite(grams) || grams <= 0) return Response.json({ error: "请确认食材重量。" }, { status: 400 });
     const nutrients = ["calories", "protein", "carbs", "fat", "fiber", "sugar", "saturatedFat", "sodium", "caffeine"].map((field) => Number(body[field] || 0));
@@ -169,7 +173,7 @@ export async function POST(request: Request) {
     const now = new Date();
     const mealDate = new Intl.DateTimeFormat("en-CA", { timeZone: profileSettings().timeZone }).format(now);
     await db.insert(mealLogs).values({
-      id: crypto.randomUUID(),
+      id,
       mealDate,
       mealType: String(body.mealType || "加餐").slice(0, 12),
       ingredientName: String(body.ingredientName || "未命名食材").slice(0, 50),
@@ -184,8 +188,8 @@ export async function POST(request: Request) {
       sodium: nutrients[7],
       caffeine: nutrients[8],
       createdAt: now.toISOString(),
-    });
-    return Response.json({ ok: true }, { status: 201 });
+    }).onConflictDoNothing();
+    return Response.json({ ok: true, id }, { status: 201 });
   }
 
   if (action === "updateMeal") {
