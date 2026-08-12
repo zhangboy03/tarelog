@@ -4,6 +4,19 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- Multi-photo capture queues that preserve selection order and review each result before saving.
+
+### Changed
+
+- Trusted-device sessions now remain valid for up to 400 days unless the access token is rotated or the owner signs out.
+
+### Fixed
+
+- Rejected unsafe post-login redirect targets that use network-path references or backslashes.
+- Kept local image optimization working when the production asset binding is unavailable.
+
 ## [0.1.0] - 2026-08-11
 
 ### Added
