@@ -164,9 +164,10 @@ test("protects every journal data route", async () => {
 });
 
 test("uses the calm utility design system across the product", async () => {
-  const [styles, layout] = await Promise.all([
+  const [styles, layout, worker] = await Promise.all([
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../worker/index.ts", import.meta.url), "utf8"),
   ]);
   for (const token of ["--canvas: #f1f4f2", "--accent: #27684f", "--display:", ".nutrition-rings", ".calorie-chart", ".ledger-editor", ".quick-log-dock", ".manual-entry", ".photo-workbench", ".mobile-admin-nav"]) {
     assert.match(styles, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
@@ -178,4 +179,5 @@ test("uses the calm utility design system across the product", async () => {
   assert.match(styles, /prefers-reduced-motion/);
   assert.doesNotMatch(styles, /#f3ead5|#bd452d|Songti SC|STSong/);
   assert.match(layout, /themeColor: "#f1f4f2"/);
+  assert.match(worker, /env\.ASSETS \? env\.ASSETS\.fetch\(assetRequest\) : fetch\(assetRequest\)/);
 });
